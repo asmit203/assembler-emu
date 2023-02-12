@@ -445,55 +445,127 @@ void secondpass(ofstream &outputLFile)
                 }
             }
         }
+        //2 or more parts
         else
         {
-            // it must be an opcode of 1 argument
-            if (opCodes.find(line_part[lineit][0]) == opCodes.end())
+            // check if there is a label or not here in this line of it is not there
+            if (labelAddr.find(counter) == labelAddr.end())
             {
-                raiseError(2, line_part[lineit][0]);
-            }
-            else
-            {
-                // now check if the opcode is of 1 argument
-                int opcode = opCodes[line_part[lineit][0]];
-                if (numargs(opcode) == 1)
+                // no label here so only a opcode of 1 argument
+                if (line_part[lineit].size() > 2)
                 {
-                    outputLFile << " " << opcode;
-                    // now check if the argument is a label or a number
-                    if (line_part[lineit][1].find(":") != -1)
-                    {
-                        // it is a label
-                        int labeladdr = labelfind(line_part[lineit][1]);
-                        if (labeladdr == -1)
-                        {
-                            raiseError(3, line_part[lineit][1]);
-                        }
-                        else
-                        {
-                            outputLFile << " " << labeladdr << endl;
-                            continue;
-                        }
-                    }
-                    else
-                    {
-                        // it is a number
-                        int num = stoi(line_part[lineit][1]);
-                        if (num < 0 or num > 255)
-                        {
-                            raiseError(1, line_part[lineit][1]);
-                        }
-                        else
-                        {
-                            outputLFile << " " << num << endl;
-                            continue;
-                        }
-                    }
+                    raiseError(1, line_part[lineit][0] + "it should have only 1 argumnets\n");
                 }
                 else
                 {
-                    raiseError(2, line_part[lineit][0] + "it should not have argumnets\n");
+                    //argn == 1
+                    string op = line_part[lineit][0];
+                    string arg = line_part[lineit][1];
+                    if (opCodes[op] == -1)
+                    {
+                        raiseError(2, op);
+                    }
+                    else
+                    {
+                        int opcode = opCodes[op];
+                        if (numargs(opcode) == 1)
+                        {
+                            outputLFile << " " << opcode;
+                            // now check if the argument is a label or a number
+                            bool islabel = false;
+                            islabel = labelfind(arg);
+                            if(islabel)
+                            {
+                                //check if it is a branch command or not
+                                if(opcode == 15 or opcode == 16 or opcode == 17)
+                                {
+                                    //it is a branch command
+                                    int labeladdr = labelfind(arg);
+                                    int offset = labeladdr - counter - 1;
+                                    outputLFile << " " << offset << endl;
+                                }
+                                else
+                                {
+                                    //it is not a branch command
+                                    int labeladdr = labelfind(arg);
+                                    outputLFile << " " << labeladdr << endl;
+                                }
+                            }
+                            else
+                            {
+                                //it is a number
+                                outputLFile << " " << arg << endl;
+                            }
+                            
+                        }
+                        else
+                        {
+                            raiseError(1, op + "it should have only 1 arguments\n");
+                        }
+                    }
                 }
             }
+            else
+            {
+                //this is a label and a opcode
+                //check if the opcode is of 0 argument
+                if (line_part[lineit].size() > 3)
+                {
+                    raiseError(1, line_part[lineit][0] + "it should have only 1 argumnets\n");
+                }
+                else
+                {
+                    //argn == 1
+                    string op = line_part[lineit][1];
+                    string arg = line_part[lineit][2];
+                    if (opCodes[op] == -1)
+                    {
+                        raiseError(2, op);
+                    }
+                    else
+                    {
+                        int opcode = opCodes[op];
+                        if (numargs(opcode) == 1)
+                        {
+                            outputLFile << " " << opcode;
+                            // now check if the argument is a label or a number
+                            bool islabel = false;
+                            islabel = labelfind(arg);
+                            if(islabel)
+                            {
+                                //check if it is a branch command or not
+                                if(opcode == 15 or opcode == 16 or opcode == 17)
+                                {
+                                    //it is a branch command
+                                    int labeladdr = labelfind(arg);
+                                    int offset = labeladdr - counter - 1;
+                                    outputLFile << " " << offset << endl;
+                                }
+                                else
+                                {
+                                    //it is not a branch command
+                                    int labeladdr = labelfind(arg);
+                                    outputLFile << " " << labeladdr << endl;
+                                }
+                            }
+                            else
+                            {
+                                //it is a number
+                                outputLFile << " " << arg << endl;
+                            }
+                            
+                        }
+                        else
+                        {
+                            raiseError(1, op + "it should have only 1 arguments\n");
+                        }
+                    }
+                }
+                //! label + opcode
+                //! label + opcode + arg
+
+            }
+            
         }
     }
 }
