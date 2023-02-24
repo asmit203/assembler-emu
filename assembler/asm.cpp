@@ -107,9 +107,11 @@ string ltrim(const string &str);
 string rtrim(const string &str);
 string trim(const string &s);
 void debug(vector<vector<string>> f);
+int labelfind(string s);
+int numargs(int opcode);
 
 void firstPassAddress(ifstream &inputFile, ofstream &outputLFile);
-
+void secondpass(ofstream &outputLFile);
 int main()
 {
     string filename = "test2";
@@ -132,7 +134,7 @@ int main()
     emptyCleaner();
     debug(line_part);
     firstPassAddress(inputFile, outputLFile);
-
+    secondpass(outputLFile);
     inputFile.close();
 
     inputFile.open(filename + ".asm");
