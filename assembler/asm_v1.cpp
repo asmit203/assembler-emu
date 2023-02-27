@@ -93,6 +93,8 @@ void commentRemover();
 void emptyCleaner();
 bool ishex(string str);
 bool isnum(string s);
+string labelspace(string s);
+bool islabel(string str);
 
 void opCodeInit()
 {
@@ -128,9 +130,13 @@ void prntmultimap(multimap<int, string> m);
 
 void firstPassAddress(ifstream &inputFile, ofstream &outputLFile);
 void secondpass(ofstream &outputLFile);
+void decide(ofstream &outputLFile, string str);
+void branchmech(ofstream &outputLFile, string str, int opcode);
+
+
 int main()
 {
-    string filename = "test1";
+    string filename = "test2";
 
     ifstream inputFile(filename + ".asm");
 
@@ -145,9 +151,15 @@ int main()
         lines.push_back(line);
     }
 
+    for (int i = 0; i < lines.size(); i++)
+    {
+        lines[i] = labelspace(lines[i]);
+    }
+
     // comment removal
     commentRemover();
     emptyCleaner();
+
     // debug(line_part);
     firstPassAddress(inputFile, outputLFile);
     secondpass(outputLFile);
@@ -212,7 +224,6 @@ void firstPassAddress(ifstream &inputFile, ofstream &outputLFile)
                 {
                     raiseError(4, line_part[i][0]);
                 }
-
                 else
                 {
                     counter++;
@@ -220,11 +231,15 @@ void firstPassAddress(ifstream &inputFile, ofstream &outputLFile)
             }
             else if (line_part[i][0].find(":") != -1)
             {
-                string temp = line_part[i][0];
-                temp.pop_back();
+                string temp = line_part[i][0].substr(0, line_part[i][0].find(":"));
+                // temp.pop_back();
                 if (labelfind(temp) != -1)
                 {
                     raiseError(6, temp);
+                }
+                else if (isdigit(temp[0]))
+                {
+                    raiseError(3, temp);
                 }
                 else
                 {
@@ -420,7 +435,7 @@ bool isonlylabel(vector<string> s)
     bool flagger = false;
     if (s.size() == 1)
     {
-        if(s[0].find(":") != -1)
+        if (s[0].find(":") != -1)
             return true;
     }
     else
@@ -437,243 +452,28 @@ bool isonlylabel(vector<string> s)
 
 void secondpass(ofstream &outputLFile)
 {
-    //get back the whole processed data
+    // get back the whole processed data
     string fl = "";
-    for(auto it:line_part)
+    vector<string> lines;
+    for (auto it : line_part)
     {
-        for(auto it1:it)
+        string temp = "";
+        for (auto it1 : it)
         {
             fl += it1 + " ";
+            temp += it1 + " ";
         }
+        lines.push_back(temp);
         fl += "\n";
     }
-
-
-
     counter = 0;
-    for (int lineit = 0; lineit < line_part.size(); lineit++)
+    for (int i = 0; i < lines.size(); i++)
     {
-        // if only label there then passon
-        if (isonlylabel(line_part[lineit]))
-        {
-            outputLFile << pc << endl;
-            continue;
-        }
-        // now that is not only label so pc will move on
-        outputLFile << pc;
-        counter++;
-        pcincrement(counter, pc);
-        // now we will check for the opcodes
-        if (line_part[lineit].size() == 1)
-        {
-            // it must be an opcode of 0 argument
-            if (opCodes.find(line_part[lineit][0]) == opCodes.end())
-            {
-                outputLFile << " " << endl;
-                raiseError(2, line_part[lineit][0]);
-            }
-            else
-            {
-                // now check if the opcode is of 0 argument
-                int opcode = opCodes[line_part[lineit][0]];
-                if (numargs(opcode) == 0)
-                {
-                    outputLFile << " " << opcode << endl;
-                    continue;
-                }
-                else
-                {
-                    // outputLFile << " " << opcode << endl; // used for debugging
-                    outputLFile << " " << endl;
-                    raiseError(2, line_part[lineit][0] + "it should have argumnets\n");
-                }
-            }
-        }
-        // 2 or more parts
-        else
-        {
-            // check if there is a label or not here in this line of it is not there
-            int c = counter;
-            if (labelAddr.find(c) == labelAddr.end())
-            {
-
-                // no label here so only a opcode of 1 argument
-                if (line_part[lineit].size() > 2)
-                {
-                    string op = line_part[lineit][0];
-                    if (opCodes[op] == -1)
-                    {
-                        raiseError(9, op);
-                    }
-                    raiseError(8, line_part[lineit][0] + "it should have max 1 argumnets\n");
-                    continue;
-                }
-                else
-                {
-                    // argn == 1
-                    string op = line_part[lineit][0];
-                    string arg = line_part[lineit][1];
-                    if (opCodes[op] == -1)
-                    {
-                        raiseError(2, op);
-                    }
-                    else
-                    {
-                        int opcode = opCodes[op];
-                        if (numargs(opcode) == 1)
-                        {
-                            // outputLFile << " " << opcode; //used for debugging
-                            // now check if the argument is a label or a number
-                            int islabel = false;
-                            islabel = labelfind(arg);
-                            if (opcode == 15 or opcode == 16 or opcode == 17)
-                            {
-                                // check if it is a branch command or not
-                                if (opcode == 15 or opcode == 16 or opcode == 17)
-                                {
-                                    // it is a branch command
-                                    int labeladdr = labelfind(arg);
-                                    if (labeladdr == -1)
-                                    {
-                                        raiseError(3, arg);
-                                        outputLFile << " " << opcode << " " << 0 << endl;
-                                    }
-                                    // is a hex address offset
-                                    else if (ishex(arg))
-
-                                    {
-                                        outputLFile << " " << opcode << " " << arg << endl;
-                                    }
-
-                                    else
-                                    {
-                                        int offset = labeladdr - counter - 1;
-                                        outputLFile << " " << opcode << " " << offset << endl;
-                                    }
-                                }
-                                else
-                                {
-                                    // it is not a branch command
-                                    int labeladdr = labelfind(arg);
-                                    outputLFile << " " << opcode << " " << labeladdr << endl;
-                                }
-                            }
-                            else
-                            {
-                                // it is a number
-                                if (isnum(arg))
-                                {
-                                    outputLFile << " " << opcode << " " << arg << endl;
-                                }
-                                else
-                                {
-                                    raiseError(4, arg);
-                                    outputLFile << " " << endl;
-                                }
-                            }
-                        }
-                        else
-                        {
-                            // it is a opcode having lesser arguments or has more than required
-                            // outputLFile << " " << opcode << endl; //used for debugging
-                            outputLFile << " " << endl;
-                            raiseError(8, op + "inappropiate arguments\n");
-                        }
-                    }
-                }
-            }
-            else
-            {
-                // this is a label and a opcode
-                // check if the opcode is of 0 argument
-                if (line_part[lineit].size() > 3)
-                {
-                    raiseError(1, line_part[lineit][0] + "it should have only 1 argumnets\n");
-                }
-                else
-                {
-                    // argn == 1
-                    string op = line_part[lineit][1];
-                    string arg = line_part[lineit][2];
-                    if (opCodes[op] == -1)
-                    {
-                        raiseError(2, op);
-                    }
-                    else
-                    {
-                        int opcode = opCodes[op];
-                        if (numargs(opcode) == 1)
-                        {
-                            // outputLFile << " " << opcode;//used in debugging
-                            // now check if the argument is a label or a number
-                            bool islabel = false;
-                            islabel = labelfind(arg);
-                            if (islabel != -1)
-                            {
-                                // check if it is a branch command or not
-                                if (opcode == 15 or opcode == 16 or opcode == 17)
-                                {
-                                    // it is a branch command
-                                    int labeladdr = labelfind(arg);
-                                    int offset = labeladdr - counter - 1;
-                                    outputLFile << " " << opcode << " " << offset << endl;
-                                }
-                                else
-                                {
-                                    // it is not a branch command and but a label is there
-                                    int labeladdr = labelfind(arg);
-                                    if (labeladdr == -1)
-                                    {
-                                        outputLFile << endl;
-                                        raiseError(8, arg);
-                                    }
-                                    else
-                                        outputLFile << " " << opcode << " " << labeladdr << endl;
-                                }
-                            }
-                            else
-                            {
-                                // it is a number
-                                outputLFile << " " << arg << endl;
-                            }
-                        }
-                        else
-                        {
-                            raiseError(1, op + "it should have only 1 arguments\n");
-                        }
-                    }
-                }
-                //! label + opcode
-                // if (line_part[lineit].size() <= 3)
-                // {
-                //     bool islabel = false;
-                //     int loc = 0;
-                //     for (auto itx : line_part[lineit])
-                //     {
-                //         if (labelfind(itx) != -1)
-                //         {
-                //             loc = labelfind(itx);
-                //             islabel = true;
-                //             break;
-                //         }
-                //     }
-                //     if (islabel)
-                //     {
-                //     }
-                //     else
-                //     {
-                //         raiseError(9, "it should have max 1 arguments\n");
-                //     }
-                // }
-                // else
-                // {
-                //     raiseError(9, "it should have max 1 arguments\n");
-                // }
-
-                //! label + opcode + arg
-            }
-        }
+        lines[i] = labelspace(lines[i]);
+        decide(outputLFile, lines[i]);
     }
+
+    // cout << fl << endl;
 }
 
 int numargs(int opcode)
@@ -722,4 +522,166 @@ bool isnum(string s)
         }
     }
     return flag;
+}
+
+void decide(ofstream &outputLFile, string str)
+{
+    stringstream ss(str);
+    string word;
+    vector<string> words;
+    while (ss >> word)
+        words.push_back(word);
+
+    // label
+    if (islabel(words[0]) and words.size() == 1)
+    {
+        // no pc increment passon
+        outputLFile << pc << endl;
+    }
+    else
+    {
+        outputLFile << pc << " ";
+        counter++;
+        pcincrement(counter, pc);
+        // max label + op + arg
+        if (words.size() <= 3)
+        {
+            if (words.size() == 1)
+            {
+                // either label or a opcode of 0 arg
+                // label is done
+                int opcode = opCodes[words[0]];
+                if (opcode == -1)
+                {
+                    // error
+                    outputLFile << endl;
+                }
+                else
+                {
+                    if (numargs(opcode) == 0)
+                        outputLFile << opcode << endl;
+                    else
+                        outputLFile << endl;
+                }
+            }
+            else if (words.size() == 2)
+            {
+                // label + op0 or op1
+                if (islabel(words[0]))
+                {
+                    int opcode = opCodes[words[1]];
+                    if (opcode == -1)
+                    {
+                        // error
+                        outputLFile << endl;
+                    }
+                    else
+                    {
+                        if (numargs(opcode) == 0)
+                            outputLFile << opcode << endl;
+                        else
+                            outputLFile << endl;
+                    }
+                }
+                else
+                {
+                    int opcode = opCodes[words[0]];
+                    if (opcode == -1)
+                    {
+                        // error
+                        outputLFile << endl;
+                    }
+                    else
+                    {
+                        if (numargs(opcode) == 1)
+                        {
+                            // branching possible
+                            if (opcode == 15 or opcode == 16 or opcode == 17)
+                            {
+                                branchmech(outputLFile, words[1], opcode);
+                            }
+                            else
+                                outputLFile << opcode << " " << words[1] << endl;
+                        }
+                        else
+                            outputLFile << endl;
+                    }
+                }
+            }
+            else
+            {
+                // label + op1
+                if (islabel(words[0]))
+                {
+                    int opcode = opCodes[words[1]];
+                    if (opcode == -1)
+                    {
+                        // error
+                        outputLFile << endl;
+                    }
+                    else
+                    {
+                        if (numargs(opcode) == 1)
+                        {
+                            // branching present
+                            if (opcode == 15 or opcode == 16 or opcode == 17)
+                            {
+                                branchmech(outputLFile, words[2], opcode);
+                            }
+                            else
+                                outputLFile << opcode << " " << words[2] << endl;
+                        }
+                        else
+                            outputLFile << endl;
+                    }
+                }
+                else
+                {
+                    outputLFile << endl;
+                }
+            }
+        }
+        else
+        {
+            outputLFile << endl;
+        }
+    }
+}
+
+string labelspace(string s)
+{
+    int pos = s.find(':');
+    if (pos != -1)
+    {
+        if (s[pos + 1] != ' ')
+        {
+            s = s.substr(0, pos + 1) + ' ' + s.substr(pos + 1);
+        }
+        if (s[pos - 1] == ' ')
+        {
+            s = s.substr(0, pos - 1) + ": " + s.substr(pos + 1);
+        }
+    }
+    return s;
+}
+
+bool islabel(string str)
+{
+    if (str.find(':') != -1)
+        return true;
+    return false;
+}
+
+void branchmech(ofstream &outputLFile, string str, int opcode)
+{
+    int labeladdr = labelfind(str);
+    if (labeladdr != -1)
+    {
+        int offset = labeladdr - counter - 1;
+        outputLFile << opcode << " " << offset << endl;
+    }
+    else
+    {
+        outputLFile << opcode << " " << 0 << endl;
+    }
 }

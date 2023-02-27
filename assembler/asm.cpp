@@ -130,7 +130,7 @@ void firstPassAddress(ifstream &inputFile, ofstream &outputLFile);
 void secondpass(ofstream &outputLFile);
 int main()
 {
-    string filename = "test1";
+    string filename = "test8";
 
     ifstream inputFile(filename + ".asm");
 
