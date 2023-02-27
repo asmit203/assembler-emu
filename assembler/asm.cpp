@@ -78,6 +78,7 @@ void pcincrement(int cnt);
 string int_to_hex(int cnt);
 void commentRemover();
 void emptyCleaner();
+bool ishex(string str);
 
 void opCodeInit()
 {
@@ -109,6 +110,7 @@ string trim(const string &s);
 void debug(vector<vector<string>> f);
 int labelfind(string s);
 int numargs(int opcode);
+void prntmultimap(multimap<int, string> m);
 
 void firstPassAddress(ifstream &inputFile, ofstream &outputLFile);
 void secondpass(ofstream &outputLFile);
@@ -132,10 +134,11 @@ int main()
     // comment removal
     commentRemover();
     emptyCleaner();
-    debug(line_part);
+    // debug(line_part);
     firstPassAddress(inputFile, outputLFile);
     secondpass(outputLFile);
     inputFile.close();
+    prntmultimap(labelAddr);
 
     inputFile.open(filename + ".asm");
 
@@ -201,7 +204,7 @@ void firstPassAddress(ifstream &inputFile, ofstream &outputLFile)
                     counter++;
                 }
             }
-            else if (line_part[i][0].find(":"))
+            else if (line_part[i][0].find(":") != -1)
             {
                 string temp = line_part[i][0];
                 temp.pop_back();
@@ -447,7 +450,7 @@ void secondpass(ofstream &outputLFile)
                 }
             }
         }
-        //2 or more parts
+        // 2 or more parts
         else
         {
             // check if there is a label or not here in this line of it is not there
@@ -460,7 +463,7 @@ void secondpass(ofstream &outputLFile)
                 }
                 else
                 {
-                    //argn == 1
+                    // argn == 1
                     string op = line_part[lineit][0];
                     string arg = line_part[lineit][1];
                     if (opCodes[op] == -1)
@@ -474,31 +477,46 @@ void secondpass(ofstream &outputLFile)
                         {
                             outputLFile << " " << opcode;
                             // now check if the argument is a label or a number
-                            bool islabel = false;
+                            int islabel = false;
                             islabel = labelfind(arg);
-                            if(islabel)
+                            if (islabel != -1)
                             {
-                                //check if it is a branch command or not
-                                if(opcode == 15 or opcode == 16 or opcode == 17)
+                                // check if it is a branch command or not
+                                if (opcode == 15 or opcode == 16 or opcode == 17)
                                 {
-                                    //it is a branch command
+                                    // it is a branch command
                                     int labeladdr = labelfind(arg);
-                                    int offset = labeladdr - counter - 1;
-                                    outputLFile << " " << offset << endl;
+                                    if (labeladdr == -1)
+                                    {
+                                        raiseError(3, arg);
+                                        outputLFile << " " << 0 << endl;
+                                    }
+                                    // is a hex address offset
+                                    else if (ishex(arg))
+
+                                    {
+                                        outputLFile << " " << arg << endl;
+                                    }
+
+                                    else
+                                    {
+                                        int offset = labeladdr - counter - 1;
+                                        outputLFile << " " << offset << endl;
+                                    }
                                 }
                                 else
                                 {
-                                    //it is not a branch command
+                                    // it is not a branch command
                                     int labeladdr = labelfind(arg);
                                     outputLFile << " " << labeladdr << endl;
                                 }
                             }
                             else
                             {
-                                //it is a number
+
+                                // it is a number
                                 outputLFile << " " << arg << endl;
                             }
-                            
                         }
                         else
                         {
@@ -509,15 +527,15 @@ void secondpass(ofstream &outputLFile)
             }
             else
             {
-                //this is a label and a opcode
-                //check if the opcode is of 0 argument
+                // this is a label and a opcode
+                // check if the opcode is of 0 argument
                 if (line_part[lineit].size() > 3)
                 {
                     raiseError(1, line_part[lineit][0] + "it should have only 1 argumnets\n");
                 }
                 else
                 {
-                    //argn == 1
+                    // argn == 1
                     string op = line_part[lineit][1];
                     string arg = line_part[lineit][2];
                     if (opCodes[op] == -1)
@@ -533,29 +551,28 @@ void secondpass(ofstream &outputLFile)
                             // now check if the argument is a label or a number
                             bool islabel = false;
                             islabel = labelfind(arg);
-                            if(islabel)
+                            if (islabel)
                             {
-                                //check if it is a branch command or not
-                                if(opcode == 15 or opcode == 16 or opcode == 17)
+                                // check if it is a branch command or not
+                                if (opcode == 15 or opcode == 16 or opcode == 17)
                                 {
-                                    //it is a branch command
+                                    // it is a branch command
                                     int labeladdr = labelfind(arg);
                                     int offset = labeladdr - counter - 1;
                                     outputLFile << " " << offset << endl;
                                 }
                                 else
                                 {
-                                    //it is not a branch command
+                                    // it is not a branch command
                                     int labeladdr = labelfind(arg);
                                     outputLFile << " " << labeladdr << endl;
                                 }
                             }
                             else
                             {
-                                //it is a number
+                                // it is a number
                                 outputLFile << " " << arg << endl;
                             }
-                            
                         }
                         else
                         {
@@ -565,9 +582,7 @@ void secondpass(ofstream &outputLFile)
                 }
                 //! label + opcode
                 //! label + opcode + arg
-
             }
-            
         }
     }
 }
@@ -582,4 +597,26 @@ int numargs(int opcode)
     {
         return 0;
     }
+}
+
+void prntmultimap(multimap<int, string> m)
+{
+    for (auto itx : m)
+    {
+        cout << itx.first << " " << itx.second << endl;
+    }
+}
+
+bool ishex(string str)
+{
+    bool flag = 0;
+    for (int i = 0; i < str.size(); i++)
+    {
+        if (!isxdigit(str[i]))
+        {
+            flag = 1;
+            break;
+        }
+    }
+    return flag;
 }

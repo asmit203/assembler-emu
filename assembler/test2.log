@@ -1,5 +1,11 @@
 ERROR: ERROR: Duplicate label "label" found
 
+ERROR: ERROR: Unknown mnemonic "fibble"  found. With no argument
+
+ERROR: ERROR: Unknown mnemonic "0def"  found. With no argument
+
+ERROR: ERROR: Bogus Label Name "nonesuch"
+
 ERROR: ERROR: Unknown mnemonic "ldcit should have argumnets
 "  found. With no argument
 
