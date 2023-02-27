@@ -132,7 +132,7 @@ void firstPassAddress(ifstream &inputFile, ofstream &outputLFile);
 void secondpass(ofstream &outputLFile);
 void decide(ofstream &outputLFile, string str);
 void branchmech(ofstream &outputLFile, string str, int opcode);
-
+void opcode1_handler(ofstream &outputLFile, string str, int opcode);
 
 int main()
 {
@@ -601,7 +601,10 @@ void decide(ofstream &outputLFile, string str)
                                 branchmech(outputLFile, words[1], opcode);
                             }
                             else
-                                outputLFile << opcode << " " << words[1] << endl;
+                            {
+                                // outputLFile << opcode << " " << words[1] << endl;
+                                opcode1_handler(outputLFile, words[1], opcode);
+                            }
                         }
                         else
                             outputLFile << endl;
@@ -625,11 +628,9 @@ void decide(ofstream &outputLFile, string str)
                         {
                             // branching present
                             if (opcode == 15 or opcode == 16 or opcode == 17)
-                            {
                                 branchmech(outputLFile, words[2], opcode);
-                            }
                             else
-                                outputLFile << opcode << " " << words[2] << endl;
+                                opcode1_handler(outputLFile, words[2], opcode);
                         }
                         else
                             outputLFile << endl;
@@ -683,5 +684,34 @@ void branchmech(ofstream &outputLFile, string str, int opcode)
     else
     {
         outputLFile << opcode << " " << 0 << endl;
+    }
+}
+
+void opcode1_handler(ofstream &outputLFile, string str, int opcode)
+{
+    if (opcode == 20 or opcode == 0 or opcode == 1 or opcode == 10 or opcode == 19)
+    {
+        // only number value
+        if (isnum(str))
+        {
+            outputLFile << opcode << " " << str << endl;
+        }
+        else
+        {
+            outputLFile << endl;
+        }
+    }
+    else
+    {
+        // label
+        int labeladdr = labelfind(str);
+        if (labeladdr != -1)
+        {
+            outputLFile << opcode << " " << labeladdr << endl;
+        }
+        else
+        {
+            outputLFile << endl;
+        }
     }
 }
