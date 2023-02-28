@@ -128,11 +128,13 @@ int labelfind(string s);
 int numargs(int opcode);
 void prntmultimap(multimap<int, string> m);
 
+void addressdecider(string str, bool &pol);
 void firstPassAddress(ifstream &inputFile, ofstream &outputLFile);
 void secondpass(ofstream &outputLFile);
 void decide(ofstream &outputLFile, string str);
 void branchmech(ofstream &outputLFile, string str, int opcode);
-void opcode1_handler(ofstream &outputLFile, string str, int opcode);
+void opcode1_handler(ofstream &outputLFile, string str, int opcode, string iflabel);
+void modify(string str, string labelname);
 
 int main()
 {
@@ -204,107 +206,25 @@ string trim(const string &s)
 
 void firstPassAddress(ifstream &inputFile, ofstream &outputLFile)
 {
-    if (!inputFile.is_open())
+    // get back the whole processed data
+    string fl = "";
+    vector<string> lines;
+    counter = 0;
+    for (auto it : line_part)
     {
-        cout << "Error opening the file" << endl;
+        string temp = "";
+        for (auto it1 : it)
+        {
+            fl += it1 + " ";
+            temp += it1 + " ";
+        }
+        lines.push_back(temp);
+        fl += "\n";
     }
-    string instruction;
-    int counter = 0;
-    for (int i = 0; i < line_part.size(); i++)
+    bool previousonlylabel = false;
+    for (int i = 0; i < lines.size(); i++)
     {
-        if (line_part[i].size() == 1)
-        {
-            if (opCodes.find(line_part[i][0]) != opCodes.end())
-            {
-                if (opCodes[line_part[i][0]] == 19)
-                {
-                    raiseError(4, line_part[i][0]);
-                }
-                else if (opCodes[line_part[i][0]] == 20)
-                {
-                    raiseError(4, line_part[i][0]);
-                }
-                else
-                {
-                    counter++;
-                }
-            }
-            else if (line_part[i][0].find(":") != -1)
-            {
-                string temp = line_part[i][0].substr(0, line_part[i][0].find(":"));
-                // temp.pop_back();
-                if (labelfind(temp) != -1)
-                {
-                    raiseError(6, temp);
-                }
-                else if (isdigit(temp[0]))
-                {
-                    raiseError(3, temp);
-                }
-                else
-                {
-                    labelAddr.insert(pair<int, string>(counter, temp));
-                }
-            }
-            else
-            {
-                raiseError(2, line_part[i][0]);
-            }
-        }
-        else if (line_part[i].size() == 2)
-        {
-            if (opCodes.find(line_part[i][0]) != opCodes.end())
-            {
-                if (opCodes[line_part[i][0]] == 19)
-                {
-                    raiseError(4, line_part[i][0]);
-                }
-                else if (opCodes[line_part[i][0]] == 20)
-                {
-                    raiseError(4, line_part[i][0]);
-                }
-                else
-                {
-                    counter++;
-                }
-            }
-            else
-            {
-                raiseError(1, line_part[i][0]);
-            }
-        }
-        // this is label + op + arg
-        else if (line_part[i].size() == 3)
-        {
-            if (line_part[i][0].find(":") != -1)
-            {
-                string temp = line_part[i][0];
-                temp.pop_back();
-                if (labelfind(temp) != -1)
-                {
-                    raiseError(6, temp);
-                }
-                else
-                {
-                    if (line_part[i][1] == "SET")
-                    {
-                        int ct = 0;
-                        stringstream ss(line_part[i][2]);
-                        ss >> ct;
-                        labelAddr.insert(pair<int, string>(ct, temp));
-                        counter++;
-                    }
-                    else
-                    {
-                        labelAddr.insert(pair<int, string>(counter, temp));
-                    }
-                }
-            }
-            else
-            {
-                raiseError(3, line_part[i][0]);
-            }
-        }
+        addressdecider(lines[i], previousonlylabel);
     }
 }
 
@@ -472,6 +392,7 @@ void secondpass(ofstream &outputLFile)
         lines.push_back(temp);
         fl += "\n";
     }
+    // cout<<fl<<endl;
     counter = 0;
     for (int i = 0; i < lines.size(); i++)
     {
@@ -484,7 +405,7 @@ void secondpass(ofstream &outputLFile)
 
 int numargs(int opcode)
 {
-    if (opcode == 0 or opcode == 1 or opcode == 2 or opcode == 3 or opcode == 4 or opcode == 5 or opcode == 10 or opcode == 13 or opcode == 15 or opcode == 16 or opcode == 17 or opcode == 19)
+    if (opcode == 0 or opcode == 1 or opcode == 2 or opcode == 3 or opcode == 4 or opcode == 5 or opcode == 10 or opcode == 13 or opcode == 15 or opcode == 16 or opcode == 17 or opcode == 19 or opcode == 20)
     {
         return 1;
     }
@@ -609,7 +530,7 @@ void decide(ofstream &outputLFile, string str)
                             else
                             {
                                 // outputLFile << opcode << " " << words[1] << endl;
-                                opcode1_handler(outputLFile, words[1], opcode);
+                                opcode1_handler(outputLFile, words[1], opcode, words[1]);
                             }
                         }
                         else
@@ -636,7 +557,10 @@ void decide(ofstream &outputLFile, string str)
                             if (opcode == 15 or opcode == 16 or opcode == 17)
                                 branchmech(outputLFile, words[2], opcode);
                             else
-                                opcode1_handler(outputLFile, words[2], opcode);
+                            {
+                                opcode1_handler(outputLFile, words[2], opcode, words[0]);
+                                string labelname = words[0];
+                            }
                         }
                         else
                             outputLFile << endl;
@@ -693,7 +617,7 @@ void branchmech(ofstream &outputLFile, string str, int opcode)
     }
 }
 
-void opcode1_handler(ofstream &outputLFile, string str, int opcode)
+void opcode1_handler(ofstream &outputLFile, string str, int opcode, string iflabel)
 {
     if (opcode == 20 or opcode == 0 or opcode == 1 or opcode == 10 or opcode == 19)
     {
@@ -701,6 +625,12 @@ void opcode1_handler(ofstream &outputLFile, string str, int opcode)
         if (isnum(str))
         {
             outputLFile << opcode << " " << str << endl;
+            if (opcode == 20)
+                modify(str, iflabel);
+        }
+        else if (opcode == 0 and (isnum(str) or labelfind(iflabel) != -1))
+        {
+            outputLFile << opcode << " " << labelfind(iflabel) << endl;
         }
         else
         {
@@ -720,4 +650,81 @@ void opcode1_handler(ofstream &outputLFile, string str, int opcode)
             outputLFile << endl;
         }
     }
+}
+
+void addressdecider(string str, bool &pol)
+{
+    stringstream ss(str);
+    string word;
+    vector<string> words;
+    while (ss >> word)
+        words.push_back(word);
+
+    if (pol)
+    {
+        // now decide the future
+        if (words.size() == 1)
+        {
+            if (islabel(words[0]))
+            {
+                labelAddr.insert(pair<int, string>(counter, words[0].substr(0, words[0].size() - 1)));
+                pol = true;
+            }
+            else
+            {
+                pol = false;
+            }
+        }
+        else
+        {
+            if (islabel(words[0]))
+            {
+                labelAddr.insert(pair<int, string>(counter, words[0].substr(0, words[0].size() - 1)));
+                pol = false;
+            }
+            else
+            {
+                pol = false;
+            }
+        }
+    }
+    else
+    {
+        // decide future
+        if (words.size() == 1)
+        {
+            if (islabel(words[0]))
+            {
+                labelAddr.insert(pair<int, string>(counter, words[0].substr(0, words[0].size() - 1)));
+                pol = true;
+            }
+            else
+            {
+                pol = false;
+            }
+        }
+        else
+        {
+            if (islabel(words[0]))
+            {
+                labelAddr.insert(pair<int, string>(counter, words[0].substr(0, words[0].size() - 1)));
+                pol = false;
+            }
+            else
+            {
+                pol = false;
+            }
+        }
+        counter++;
+    }
+}
+
+// set operation
+void modify(string str, string labelname)
+{
+    int address = stoi(str);
+    auto itr = labelAddr.find(labelfind(labelname.substr(0, labelname.size() - 1)));
+    if (itr != labelAddr.end())
+        labelAddr.erase(itr);
+    labelAddr.insert(pair<int, string>(address, labelname.substr(0, labelname.size() - 1)));
 }
