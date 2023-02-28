@@ -95,6 +95,7 @@ bool ishex(string str);
 bool isnum(string s);
 string labelspace(string s);
 bool islabel(string str);
+bool isHex(string str);
 
 void opCodeInit()
 {
@@ -137,6 +138,8 @@ void opcode1_handler(ofstream &outputLFile, string str, int opcode, string iflab
 void modify(string str, string labelname);
 void valuewriter(ofstream &outputLFile, int opcode, int str);
 int string_to_int(string str);
+int hexCharToInt(char c);
+int hexStringToInt(string hexString);
 
 void run(string filename)
 {
@@ -458,6 +461,11 @@ bool ishex(string str)
 bool isnum(string s)
 {
     bool flag = true;
+    // hexnumber
+    if (isHex(s))
+    {
+        return flag;
+    }
     if (s[0] == '-' or s[0] == '+')
     {
         s.erase(s.begin());
@@ -470,6 +478,7 @@ bool isnum(string s)
             break;
         }
     }
+
     return flag;
 }
 
@@ -672,16 +681,27 @@ void opcode1_handler(ofstream &outputLFile, string str, int opcode, string iflab
     }
     else
     {
-        // label
+        //  label
         int labeladdr = labelfind(str);
-        if (labeladdr != -1)
+        // offset ones
+        if (opcode == 2 or opcode == 3 or opcode == 4 or opcode == 5 or opcode == 13)
         {
-            // outputLFile << opcode << " " << labeladdr << endl;
-            valuewriter(outputLFile, opcode, labeladdr);
-        }
-        else
-        {
-            outputLFile << endl;
+
+            if (labeladdr != -1)
+            {
+                // outputLFile << opcode << " " << labeladdr << endl;
+                valuewriter(outputLFile, opcode, labeladdr);
+            }
+            else
+            {
+                if (isnum(str))
+                {
+                    // outputLFile << opcode << " " << str << endl;
+                    valuewriter(outputLFile, opcode, string_to_int(str));
+                }
+                else
+                    outputLFile << endl;
+            }
         }
     }
 }
@@ -783,10 +803,75 @@ int string_to_int(string str)
     }
     if (str[0] == '+')
         str = str.substr(1);
-
+    // hex support
+    if (isHex(str))
+    {
+        const char *c = str.c_str();
+        num = (int)strtol(c, NULL, 0);
+        cout << "--------" << num << endl;
+        return num;
+    }
     for (int i = 0; i < str.size(); i++)
     {
         num = num * 10 + (str[i] - '0');
     }
     return num * t;
+}
+
+bool isHex(string str)
+{
+    if (str.length() < 3)
+    { // The string must have at least 3 characters (e.g. "0x0")
+        return false;
+    }
+    if (str.substr(0, 2) != "0x")
+    { // The string must start with "0x"
+        return false;
+    }
+    return std::all_of(str.begin() + 2, str.end(), [](char c)
+                       { 
+        // The remaining characters must be hexadecimal digits
+        return std::isxdigit(c); });
+}
+
+int hexCharToInt(char c)
+{
+    if (c >= '0' && c <= '9')
+    {
+        return c - '0';
+    }
+    else if (c >= 'a' && c <= 'f')
+    {
+        return c - 'a' + 10;
+    }
+    else if (c >= 'A' && c <= 'F')
+    {
+        return c - 'A' + 10;
+    }
+    else
+    {
+        return -1; // Invalid hexadecimal character
+    }
+}
+
+int hexStringToInt(string hexString)
+{
+    int intValue = 0;
+    int base = 1;
+
+    for (int i = hexString.length() - 1; i >= 0; i--)
+    {
+        int hexDigit = hexCharToInt(hexString[i]);
+
+        if (hexDigit == -1)
+        {
+            // Invalid hexadecimal character
+            return -1;
+        }
+
+        intValue += hexDigit * base;
+        base *= 16;
+    }
+
+    return intValue;
 }
