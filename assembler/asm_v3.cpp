@@ -138,12 +138,8 @@ void modify(string str, string labelname);
 void valuewriter(ofstream &outputLFile, int opcode, int str);
 int string_to_int(string str);
 
-
-
-int main()
+void run(string filename)
 {
-    string filename = "test3";
-
     ifstream inputFile(filename + ".asm");
 
     ofstream outputLFile(filename + ".l");
@@ -188,6 +184,24 @@ int main()
 
     outputLFile.close();
     outputLogFile.close();
+}
+
+int main()
+{
+    string filename = "test";
+    vector<string> filenames = {"1", "2", "3", "4", "5", "7", "8"};
+    for (string it : filenames)
+    {
+        counter = 0;
+        pc = "00000000";
+        error.clear();
+        warning.clear();
+        lines.clear();
+        line_part.clear();
+        labelAddr.clear();
+        opCodes.clear();
+        run(filename + it);
+    }
     return 0;
 }
 
@@ -494,7 +508,10 @@ void decide(ofstream &outputLFile, string str)
                 else
                 {
                     if (numargs(opcode) == 0)
-                        outputLFile << opcode << endl;
+                    {
+                        // outputLFile << opcode << endl;
+                        valuewriter(outputLFile, opcode, 0);
+                    }
                     else
                         outputLFile << endl;
                 }
@@ -513,7 +530,10 @@ void decide(ofstream &outputLFile, string str)
                     else
                     {
                         if (numargs(opcode) == 0)
-                            outputLFile << opcode << endl;
+                        {
+                            // outputLFile << opcode << endl;
+                            valuewriter(outputLFile, opcode, 0);
+                        }
                         else
                             outputLFile << endl;
                     }
@@ -761,7 +781,7 @@ int string_to_int(string str)
         t = -1;
         str = str.substr(1);
     }
-    if(str[0]=='+')
+    if (str[0] == '+')
         str = str.substr(1);
 
     for (int i = 0; i < str.size(); i++)
