@@ -130,13 +130,13 @@ int numargs(int opcode);
 void prntmultimap(multimap<int, string> m);
 
 void addressdecider(string str, bool &pol);
-void firstPassAddress(ifstream &inputFile, ofstream &outputLFile);
-void secondpass(ofstream &outputLFile);
-void decide(ofstream &outputLFile, string str);
-void branchmech(ofstream &outputLFile, string str, int opcode);
-void opcode1_handler(ofstream &outputLFile, string str, int opcode, string iflabel);
+void firstPassAddress(ifstream &inputFile, ofstream &outputOFile);
+void secondpass(ofstream &outputOFile);
+void decide(ofstream &outputOFile, string str);
+void branchmech(ofstream &outputOFile, string str, int opcode);
+void opcode1_handler(ofstream &outputOFile, string str, int opcode, string iflabel);
 void modify(string str, string labelname);
-void valuewriter(ofstream &outputLFile, int opcode, int str);
+void valuewriter(ofstream &outputOFile, int opcode, int str);
 int string_to_int(string str);
 int hexCharToInt(char c);
 int hexStringToInt(string hexString);
@@ -144,12 +144,10 @@ bool acceptlabel(string str);
 
 void run(string filename)
 {
-    ifstream inputFile(filename + ".asm");
-
-    ofstream outputLFile(filename + ".l");
-    ofstream outputOFile(filename + ".o");
-
-    ofstream outputLogFile(filename + ".log");
+    ifstream inputFile("../asm/" + filename + ".asm");
+    ofstream outputOFile("../o/" + filename + ".o");
+    ofstream outputLFile("../l/" + filename + ".lst");
+    ofstream outputLogFile("../log/"+filename + ".log");
 
     opCodeInit();
     string line;
@@ -168,22 +166,18 @@ void run(string filename)
     emptyCleaner();
 
     // debug(line_part);
-    firstPassAddress(inputFile, outputLFile);
-    secondpass(outputLFile);
-    inputFile.close();
+    firstPassAddress(inputFile, outputOFile);
+    secondpass(outputOFile);
     prntmultimap(labelAddr);
-
-    inputFile.open(filename + ".asm");
-
-    // secondPassConvert(inputFile, outputLFile);
 
     for (auto val : error)
     {
-        outputLogFile<< val << endl;
+        outputLogFile << val << endl;
     }
 
-    outputLFile.close();
+    inputFile.close();
     outputOFile.close();
+    outputLFile.close();
     outputLogFile.close();
 }
 
@@ -224,7 +218,7 @@ string trim(const string &s)
     return rtrim(ltrim(s));
 }
 
-void firstPassAddress(ifstream &inputFile, ofstream &outputLFile)
+void firstPassAddress(ifstream &inputFile, ofstream &outputOFile)
 {
     // get back the whole processed data
     string fl = "";
@@ -396,7 +390,7 @@ bool isonlylabel(vector<string> s)
     // return flagger;
 }
 
-void secondpass(ofstream &outputLFile)
+void secondpass(ofstream &outputOFile)
 {
     // get back the whole processed data
     string fl = "";
@@ -417,7 +411,7 @@ void secondpass(ofstream &outputLFile)
     for (int i = 0; i < lines.size(); i++)
     {
         lines[i] = labelspace(lines[i]);
-        decide(outputLFile, lines[i]);
+        decide(outputOFile, lines[i]);
     }
 
     // cout << fl << endl;
@@ -469,7 +463,7 @@ bool isnum(string s)
     return flag;
 }
 
-void decide(ofstream &outputLFile, string str)
+void decide(ofstream &outputOFile, string str)
 {
     stringstream ss(str);
     string word;
@@ -481,11 +475,11 @@ void decide(ofstream &outputLFile, string str)
     if (islabel(words[0]) and words.size() == 1)
     {
         // no pc increment passon
-        outputLFile << pc << endl;
+        outputOFile << pc << endl;
     }
     else
     {
-        outputLFile << pc << " ";
+        outputOFile << pc << " ";
         counter++;
         pcincrement(counter, pc);
         // max label + op + arg
@@ -500,19 +494,19 @@ void decide(ofstream &outputLFile, string str)
                 {
                     // error
                     raiseError(9, words[0]);
-                    outputLFile << endl;
+                    outputOFile << endl;
                 }
                 else
                 {
                     if (numargs(opcode) == 0)
                     {
-                        // outputLFile << opcode << endl;
-                        valuewriter(outputLFile, opcode, 0);
+                        // outputOFile << opcode << endl;
+                        valuewriter(outputOFile, opcode, 0);
                     }
                     else
                     {
                         raiseError(8, words[0] + " counter-->  " + to_string(counter));
-                        outputLFile << endl;
+                        outputOFile << endl;
                     }
                 }
             }
@@ -526,19 +520,19 @@ void decide(ofstream &outputLFile, string str)
                     {
                         // error
                         raiseError(9, words[1]);
-                        outputLFile << endl;
+                        outputOFile << endl;
                     }
                     else
                     {
                         if (numargs(opcode) == 0)
                         {
-                            // outputLFile << opcode << endl;
-                            valuewriter(outputLFile, opcode, 0);
+                            // outputOFile << opcode << endl;
+                            valuewriter(outputOFile, opcode, 0);
                         }
                         else
                         {
                             raiseError(8, words[1] + " counter-->  " + to_string(counter));
-                            outputLFile << endl;
+                            outputOFile << endl;
                         }
                     }
                 }
@@ -549,7 +543,7 @@ void decide(ofstream &outputLFile, string str)
                     {
                         // error
                         raiseError(9, words[0]);
-                        outputLFile << endl;
+                        outputOFile << endl;
                     }
                     else
                     {
@@ -558,18 +552,18 @@ void decide(ofstream &outputLFile, string str)
                             // branching possible
                             if (opcode == 15 or opcode == 16 or opcode == 17)
                             {
-                                branchmech(outputLFile, words[1], opcode);
+                                branchmech(outputOFile, words[1], opcode);
                             }
                             else
                             {
-                                // outputLFile << opcode << " " << words[1] << endl;
-                                opcode1_handler(outputLFile, words[1], opcode, words[1]);
+                                // outputOFile << opcode << " " << words[1] << endl;
+                                opcode1_handler(outputOFile, words[1], opcode, words[1]);
                             }
                         }
                         else
                         {
                             raiseError(8, words[0] + " counter-->  " + to_string(counter));
-                            outputLFile << endl;
+                            outputOFile << endl;
                         }
                     }
                 }
@@ -584,7 +578,7 @@ void decide(ofstream &outputLFile, string str)
                     {
                         // error
                         raiseError(9, words[1]);
-                        outputLFile << endl;
+                        outputOFile << endl;
                     }
                     else
                     {
@@ -592,31 +586,31 @@ void decide(ofstream &outputLFile, string str)
                         {
                             // branching present
                             if (opcode == 15 or opcode == 16 or opcode == 17)
-                                branchmech(outputLFile, words[2], opcode);
+                                branchmech(outputOFile, words[2], opcode);
                             else
                             {
-                                opcode1_handler(outputLFile, words[2], opcode, words[0]);
+                                opcode1_handler(outputOFile, words[2], opcode, words[0]);
                                 string labelname = words[0];
                             }
                         }
                         else
                         {
                             raiseError(8, words[1] + " counter-->  " + to_string(counter));
-                            outputLFile << endl;
+                            outputOFile << endl;
                         }
                     }
                 }
                 else
                 {
                     raiseError(3, words[0] + " counter-->  " + to_string(counter));
-                    outputLFile << endl;
+                    outputOFile << endl;
                 }
             }
         }
         else
         {
             raiseError(8, " counter-->  " + to_string(counter));
-            outputLFile << endl;
+            outputOFile << endl;
         }
     }
 }
@@ -658,47 +652,47 @@ bool islabel(string str)
         return flag;
 }
 
-void branchmech(ofstream &outputLFile, string str, int opcode)
+void branchmech(ofstream &outputOFile, string str, int opcode)
 {
     int labeladdr = labelfind(str);
     if (labeladdr != -1)
     {
         int offset = labeladdr - counter;
-        // outputLFile << opcode << " " << offset << endl;
+        // outputOFile << opcode << " " << offset << endl;
         if (offset == -1)
             raiseError(7, "INF LOOP");
-        valuewriter(outputLFile, opcode, offset);
+        valuewriter(outputOFile, opcode, offset);
     }
     else
     {
-        // outputLFile << opcode << " " << 0 << endl;
+        // outputOFile << opcode << " " << 0 << endl;
         raiseError(5, str);
-        valuewriter(outputLFile, opcode, 0);
+        valuewriter(outputOFile, opcode, 0);
     }
 }
 
-void opcode1_handler(ofstream &outputLFile, string str, int opcode, string iflabel)
+void opcode1_handler(ofstream &outputOFile, string str, int opcode, string iflabel)
 {
     if (opcode == 20 or opcode == 0 or opcode == 1 or opcode == 10 or opcode == 19)
     {
         // only number value
         if (isnum(str))
         {
-            // outputLFile << opcode << " " << str << endl;
+            // outputOFile << opcode << " " << str << endl;
             if (opcode == 20)
                 modify(str, iflabel);
 
-            valuewriter(outputLFile, opcode, string_to_int(str));
+            valuewriter(outputOFile, opcode, string_to_int(str));
         }
         else if ((opcode == 0 or opcode == 1) and (isnum(str) or labelfind(iflabel) != -1))
         {
-            // outputLFile << opcode << " " << labelfind(iflabel) << endl;
-            valuewriter(outputLFile, opcode, labelfind(iflabel));
+            // outputOFile << opcode << " " << labelfind(iflabel) << endl;
+            valuewriter(outputOFile, opcode, labelfind(iflabel));
         }
         else
         {
             raiseError(8, str);
-            outputLFile << endl;
+            outputOFile << endl;
         }
     }
     else
@@ -711,20 +705,20 @@ void opcode1_handler(ofstream &outputLFile, string str, int opcode, string iflab
 
             if (labeladdr != -1)
             {
-                // outputLFile << opcode << " " << labeladdr << endl;
-                valuewriter(outputLFile, opcode, labeladdr);
+                // outputOFile << opcode << " " << labeladdr << endl;
+                valuewriter(outputOFile, opcode, labeladdr);
             }
             else
             {
                 if (isnum(str))
                 {
-                    // outputLFile << opcode << " " << str << endl;
-                    valuewriter(outputLFile, opcode, string_to_int(str));
+                    // outputOFile << opcode << " " << str << endl;
+                    valuewriter(outputOFile, opcode, string_to_int(str));
                 }
                 else
                 {
                     raiseError(8, str);
-                    outputLFile << endl;
+                    outputOFile << endl;
                 }
             }
         }
@@ -816,13 +810,13 @@ void modify(string str, string labelname)
     labelAddr.insert(pair<int, string>(address, labelname.substr(0, labelname.size() - 1)));
 }
 
-void valuewriter(ofstream &outputLFile, int opcode, int str)
+void valuewriter(ofstream &outputOFile, int opcode, int str)
 {
     string op = int_to_hex(opcode);
     padding(op, 2, opcode);
     string val = int_to_hex(str);
     padding(val, 6, str);
-    outputLFile << val << op << endl;
+    outputOFile << val << op << endl;
 }
 
 int string_to_int(string str)

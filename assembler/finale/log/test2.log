@@ -1,0 +1,28 @@
+ERROR: Duplicate label "label" found
+
+ERROR: Duplicate label "label" found
+
+ERROR: Bogus Label Name "0def"
+
+ERROR: No such label "nonesuch" exists
+
+ERROR: Invalid Number Entered "08ge"
+
+ERROR: Invalid Number Entered "08ge"
+
+ERROR: Inappropiate arguments given: 08ge 
+
+ERROR: Inappropiate arguments given: ldc counter-->  3 
+
+ERROR: Inappropiate arguments given: add counter-->  4 
+
+ERROR: Bogus Label Name "ldc counter-->  5"
+
+ERROR: Bogus Label Name "0def"
+
+ERROR: Inappropiate arguments given: 0def: counter-->  6 
+
+ERROR: Inappropiate arguments given: fibble counter-->  7 
+
+ERROR: Inappropiate arguments given: 0def counter-->  8 
+

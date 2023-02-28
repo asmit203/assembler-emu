@@ -1,0 +1,20 @@
+ERROR: Duplicate label "label" found
+
+ERROR: Duplicate label "loop" found
+
+ERROR: Duplicate label "next" found
+
+ERROR: Duplicate label "var1" found
+
+ERROR: Inappropiate arguments given: ldc counter-->  1 
+
+WARNING: Infinite loop detected
+
+ERROR: Invalid Number Entered "loop"
+
+ERROR: Invalid Number Entered "loop"
+
+ERROR: Invalid Number Entered "var1"
+
+ERROR: Invalid Number Entered "var1"
+
