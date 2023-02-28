@@ -1,5 +1,9 @@
 #include <bits/stdc++.h>
 using namespace std;
+
+
+//! .\asm_v4.exe ../asm/test8.asm
+
 typedef long long int ll;
 const string WHITESPACE = " \n\r\t\f\v";
 int counter = 0;
@@ -9,6 +13,7 @@ vector<string> error;
 // whole file
 vector<string> lines;
 vector<vector<string>> line_part;
+vector<string> finalstr;
 
 map<string, int> opCodes;
 
@@ -148,7 +153,6 @@ void run(string filename)
     cout << filename << endl;
     filename = filename.substr(6, filename.length() - 10);
     ofstream outputOFile("../o/" + filename + ".o");
-    ofstream outputLFile("../l/" + filename + ".lst");
     ofstream outputLogFile("../log/" + filename + ".log");
 
     opCodeInit();
@@ -176,10 +180,21 @@ void run(string filename)
     {
         outputLogFile << val << endl;
     }
+    outputOFile.close();
+    ifstream inputOFile("../o/" + filename + ".o");
+    ofstream outputLFile("../l/" + filename + ".lst");
+    string linenew;
+    int i = 0;
 
+    while (i < lines.size())
+    {
+        getline(inputOFile, linenew);
+        outputLFile << linenew<< "    " << finalstr[i] << endl;
+        i++;
+    }
+    outputLFile.close();
     inputFile.close();
     outputOFile.close();
-    outputLFile.close();
     outputLogFile.close();
 }
 
@@ -379,14 +394,6 @@ bool isonlylabel(vector<string> s)
     }
     else
         return false;
-    // for (auto itx : s)
-    // {
-    //     if (itx.find(":") != -1)
-    //     {
-    //         flagger = flagger or true;
-    //     }
-    // }
-    // return flagger;
 }
 
 void secondpass(ofstream &outputOFile)
@@ -406,14 +413,13 @@ void secondpass(ofstream &outputOFile)
         fl += "\n";
     }
     // cout<<fl<<endl;
+    finalstr = lines;
     counter = 0;
     for (int i = 0; i < lines.size(); i++)
     {
         lines[i] = labelspace(lines[i]);
         decide(outputOFile, lines[i]);
     }
-
-    // cout << fl << endl;
 }
 
 int numargs(int opcode)
@@ -456,8 +462,6 @@ bool isnum(string s)
             break;
         }
     }
-    if (!flag)
-        raiseError(4, s);
 
     return flag;
 }
@@ -739,11 +743,11 @@ void addressdecider(string str, bool &pol)
         {
             if (islabel(words[0]))
             {
-                labelAddr.insert(pair<int, string>(counter, words[0].substr(0, words[0].size() - 1)));
                 if (labelfind(words[0].substr(0, words[0].size() - 1)) != -1)
                 {
                     raiseError(6, words[0].substr(0, words[0].size() - 1));
                 }
+                labelAddr.insert(pair<int, string>(counter, words[0].substr(0, words[0].size() - 1)));
                 pol = true;
             }
             else
@@ -755,11 +759,11 @@ void addressdecider(string str, bool &pol)
         {
             if (islabel(words[0]))
             {
-                labelAddr.insert(pair<int, string>(counter, words[0].substr(0, words[0].size() - 1)));
                 if (labelfind(words[0].substr(0, words[0].size() - 1)) != -1)
                 {
                     raiseError(6, words[0].substr(0, words[0].size() - 1));
                 }
+                labelAddr.insert(pair<int, string>(counter, words[0].substr(0, words[0].size() - 1)));
                 pol = false;
             }
             else
@@ -775,11 +779,11 @@ void addressdecider(string str, bool &pol)
         {
             if (islabel(words[0]))
             {
-                labelAddr.insert(pair<int, string>(counter, words[0].substr(0, words[0].size() - 1)));
                 if (labelfind(words[0].substr(0, words[0].size() - 1)) != -1)
                 {
                     raiseError(6, words[0].substr(0, words[0].size() - 1));
                 }
+                labelAddr.insert(pair<int, string>(counter, words[0].substr(0, words[0].size() - 1)));
                 pol = true;
             }
             else
@@ -791,9 +795,9 @@ void addressdecider(string str, bool &pol)
         {
             if (islabel(words[0]))
             {
-                labelAddr.insert(pair<int, string>(counter, words[0].substr(0, words[0].size() - 1)));
                 if (labelfind(words[0].substr(0, words[0].size() - 1)) != -1)
                     raiseError(6, words[0].substr(0, words[0].size() - 1));
+                labelAddr.insert(pair<int, string>(counter, words[0].substr(0, words[0].size() - 1)));
                 pol = false;
             }
             else
