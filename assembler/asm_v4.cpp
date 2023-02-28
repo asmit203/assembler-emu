@@ -77,7 +77,7 @@ void raiseError(int code, string label)
 
     else if (code == 8)
     {
-        temp = "ERROR: Inappropiante arguments given: " + label + " \n";
+        temp = "ERROR: Inappropiate arguments given: " + label + " \n";
         error.push_back(temp);
     }
     else if (code == 9)
@@ -179,12 +179,7 @@ void run(string filename)
 
     for (auto val : error)
     {
-        outputLogFile << "ERROR: " << val << endl;
-    }
-
-    for (auto val : warning)
-    {
-        outputLogFile << "WARNING: " << val << endl;
+        outputLogFile<< val << endl;
     }
 
     outputLFile.close();
@@ -196,6 +191,7 @@ int main()
 {
     string filename = "test";
     vector<string> filenames = {"1", "2", "3", "4", "5", "7", "8"};
+    // vector<string> filenames = {"8"};
     for (string it : filenames)
     {
         counter = 0;
@@ -515,7 +511,7 @@ void decide(ofstream &outputLFile, string str)
                     }
                     else
                     {
-                        raiseError(8, words[0] + "counter-->  " + to_string(counter));
+                        raiseError(8, words[0] + " counter-->  " + to_string(counter));
                         outputLFile << endl;
                     }
                 }
@@ -541,7 +537,7 @@ void decide(ofstream &outputLFile, string str)
                         }
                         else
                         {
-                            raiseError(8, words[1] + "counter-->  " + to_string(counter));
+                            raiseError(8, words[1] + " counter-->  " + to_string(counter));
                             outputLFile << endl;
                         }
                     }
@@ -572,7 +568,7 @@ void decide(ofstream &outputLFile, string str)
                         }
                         else
                         {
-                            raiseError(8, words[0] + "counter-->  " + to_string(counter));
+                            raiseError(8, words[0] + " counter-->  " + to_string(counter));
                             outputLFile << endl;
                         }
                     }
@@ -605,21 +601,21 @@ void decide(ofstream &outputLFile, string str)
                         }
                         else
                         {
-                            raiseError(8, words[1] + "counter-->  " + to_string(counter));
+                            raiseError(8, words[1] + " counter-->  " + to_string(counter));
                             outputLFile << endl;
                         }
                     }
                 }
                 else
                 {
-                    raiseError(3, words[0] + "counter-->  " + to_string(counter));
+                    raiseError(3, words[0] + " counter-->  " + to_string(counter));
                     outputLFile << endl;
                 }
             }
         }
         else
         {
-            raiseError(8, "counter-->  " + to_string(counter));
+            raiseError(8, " counter-->  " + to_string(counter));
             outputLFile << endl;
         }
     }
