@@ -1,0 +1,14 @@
+ERROR: ERROR: Duplicate label "whatever" found
+
+ERROR: ERROR: Duplicate label "abc" found
+
+ERROR: ERROR: Duplicate label "start" found
+
+ERROR: ERROR: Invalid Number Entered "whatever"
+
+ERROR: ERROR: Invalid Number Entered "whatever"
+
+ERROR: ERROR: Invalid Number Entered "abc"
+
+ERROR: ERROR: Invalid Number Entered "abc"
+
