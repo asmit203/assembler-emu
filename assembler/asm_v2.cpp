@@ -135,6 +135,10 @@ void decide(ofstream &outputLFile, string str);
 void branchmech(ofstream &outputLFile, string str, int opcode);
 void opcode1_handler(ofstream &outputLFile, string str, int opcode, string iflabel);
 void modify(string str, string labelname);
+void valuewriter(ofstream &outputLFile, int opcode, int str);
+int string_to_int(string str);
+
+
 
 int main()
 {
@@ -440,6 +444,10 @@ bool ishex(string str)
 bool isnum(string s)
 {
     bool flag = true;
+    if (s[0] == '-' or s[0] == '+')
+    {
+        s.erase(s.begin());
+    }
     for (auto itx : s)
     {
         if (!isdigit(itx))
@@ -609,11 +617,13 @@ void branchmech(ofstream &outputLFile, string str, int opcode)
     if (labeladdr != -1)
     {
         int offset = labeladdr - counter;
-        outputLFile << opcode << " " << offset << endl;
+        // outputLFile << opcode << " " << offset << endl;
+        valuewriter(outputLFile, opcode, offset);
     }
     else
     {
-        outputLFile << opcode << " " << 0 << endl;
+        // outputLFile << opcode << " " << 0 << endl;
+        valuewriter(outputLFile, opcode, 0);
     }
 }
 
@@ -624,13 +634,16 @@ void opcode1_handler(ofstream &outputLFile, string str, int opcode, string iflab
         // only number value
         if (isnum(str))
         {
-            outputLFile << opcode << " " << str << endl;
+            // outputLFile << opcode << " " << str << endl;
             if (opcode == 20)
                 modify(str, iflabel);
+
+            valuewriter(outputLFile, opcode, string_to_int(str));
         }
         else if (opcode == 0 and (isnum(str) or labelfind(iflabel) != -1))
         {
-            outputLFile << opcode << " " << labelfind(iflabel) << endl;
+            // outputLFile << opcode << " " << labelfind(iflabel) << endl;
+            valuewriter(outputLFile, opcode, labelfind(iflabel));
         }
         else
         {
@@ -643,7 +656,8 @@ void opcode1_handler(ofstream &outputLFile, string str, int opcode, string iflab
         int labeladdr = labelfind(str);
         if (labeladdr != -1)
         {
-            outputLFile << opcode << " " << labeladdr << endl;
+            // outputLFile << opcode << " " << labeladdr << endl;
+            valuewriter(outputLFile, opcode, labeladdr);
         }
         else
         {
@@ -727,4 +741,32 @@ void modify(string str, string labelname)
     if (itr != labelAddr.end())
         labelAddr.erase(itr);
     labelAddr.insert(pair<int, string>(address, labelname.substr(0, labelname.size() - 1)));
+}
+
+void valuewriter(ofstream &outputLFile, int opcode, int str)
+{
+    string op = int_to_hex(opcode);
+    padding(op, 2, opcode);
+    string val = int_to_hex(str);
+    padding(val, 6, str);
+    outputLFile << val << op << endl;
+}
+
+int string_to_int(string str)
+{
+    int num = 0;
+    int t = 1;
+    if (str[0] == '-')
+    {
+        t = -1;
+        str = str.substr(1);
+    }
+    if(str[0]=='+')
+        str = str.substr(1);
+
+    for (int i = 0; i < str.size(); i++)
+    {
+        num = num * 10 + (str[i] - '0');
+    }
+    return num * t;
 }
