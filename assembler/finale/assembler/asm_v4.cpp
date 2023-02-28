@@ -144,10 +144,12 @@ bool acceptlabel(string str);
 
 void run(string filename)
 {
-    ifstream inputFile("../asm/" + filename + ".asm");
+    ifstream inputFile(filename);
+    cout << filename << endl;
+    filename = filename.substr(6, filename.length() - 10);
     ofstream outputOFile("../o/" + filename + ".o");
     ofstream outputLFile("../l/" + filename + ".lst");
-    ofstream outputLogFile("../log/"+filename + ".log");
+    ofstream outputLogFile("../log/" + filename + ".log");
 
     opCodeInit();
     string line;
@@ -181,23 +183,20 @@ void run(string filename)
     outputLogFile.close();
 }
 
-int main()
+int main(int argc, char **argv)
 {
-    string filename = "test";
-    vector<string> filenames = {"1", "2", "3", "4", "5", "7", "8"};
-    // vector<string> filenames = {"8"};
-    for (string it : filenames)
+    string filename;
+    if (argc == 2)
     {
-        counter = 0;
-        pc = "00000000";
-        error.clear();
-        warning.clear();
-        lines.clear();
-        line_part.clear();
-        labelAddr.clear();
-        opCodes.clear();
-        run(filename + it);
+        filename = argv[1];
     }
+    else
+    {
+        cout << "ASSEMBLY FAILED: Invalid number of arguments passed (" << argc - 1 << ") Only the file name is to be entered." << endl;
+        exit(1);
+    }
+    cout << "FILE OPENED SUCCESSFULLY" << endl;
+    run(filename);
     return 0;
 }
 
@@ -742,7 +741,9 @@ void addressdecider(string str, bool &pol)
             {
                 labelAddr.insert(pair<int, string>(counter, words[0].substr(0, words[0].size() - 1)));
                 if (labelfind(words[0].substr(0, words[0].size() - 1)) != -1)
+                {
                     raiseError(6, words[0].substr(0, words[0].size() - 1));
+                }
                 pol = true;
             }
             else
@@ -756,7 +757,9 @@ void addressdecider(string str, bool &pol)
             {
                 labelAddr.insert(pair<int, string>(counter, words[0].substr(0, words[0].size() - 1)));
                 if (labelfind(words[0].substr(0, words[0].size() - 1)) != -1)
+                {
                     raiseError(6, words[0].substr(0, words[0].size() - 1));
+                }
                 pol = false;
             }
             else
@@ -774,7 +777,9 @@ void addressdecider(string str, bool &pol)
             {
                 labelAddr.insert(pair<int, string>(counter, words[0].substr(0, words[0].size() - 1)));
                 if (labelfind(words[0].substr(0, words[0].size() - 1)) != -1)
+                {
                     raiseError(6, words[0].substr(0, words[0].size() - 1));
+                }
                 pol = true;
             }
             else
