@@ -93,7 +93,7 @@ int main(int argc, char **argv)
     logFileName = filename.substr(4);
     logFileName = logFileName.substr(0, logFileName.length() - 2);
     logFileName += ".trace";
-    logFileName = "../trace/"+logFileName;
+    logFileName = "../trace"+logFileName;
     cout << logFileName << endl;
     ofstream outBin(logFileName);
     outBin << history_log;
