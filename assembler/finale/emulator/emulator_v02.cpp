@@ -54,7 +54,7 @@ int main(int argc, char **argv)
         cout << "EMULATOR FAILED: No file named \"" << filename << "\" exists." << endl;
         exit(1);
     }
-    cout << "1/4 FILE OPENED SUCCESSFULLY" << endl;
+    cout << "|#   | FILE OPENED SUCCESSFULLY" << endl;
     vector<vector<string>> parsedLines;
     vector<string> lines;
     string line;
@@ -76,12 +76,12 @@ int main(int argc, char **argv)
         parsedLines.push_back(temp);
     }
 
-    cout << "2/4 FILE PARSED SUCCESSFULLY" << endl;
+    cout << "|##  | FILE PARSED SUCCESSFULLY" << endl;
 
     vector<pair<string, string>> instructions;
     section2(parsedLines, instructions);
 
-    cout << "3/4 OPCODE AND OPERAND SPLITTED" << endl;
+    cout << "|### | OPCODE AND OPERAND SPLITTED" << endl;
     int pointer = 0;
 
     int limit = EXECUTION_LIMIT;
@@ -89,20 +89,16 @@ int main(int argc, char **argv)
     section3(limit, trace, instructions, prevPC);
 
     string logFileName = "";
-    for (int i = 0; i < filename.length(); i++)
-    {
-
-        if (filename[i] == '.')
-            break;
-        else
-            logFileName += filename[i];
-    }
+    cout<<filename<<endl;
+    logFileName = filename.substr(4);
+    logFileName = logFileName.substr(0, logFileName.length() - 2);
     logFileName += ".trace";
-
+    logFileName = "../trace/"+logFileName;
+    cout << logFileName << endl;
     ofstream outBin(logFileName);
     outBin << history_log;
     outBin.close();
-    cout << "4/4 test FILE GENERATED" << endl;
+    cout << "|####| test FILE GENERATED" << endl;
     cout << "EMULATION COMPLETED SUCCESSFULLY" << endl;
     in.close();
     return 0;
