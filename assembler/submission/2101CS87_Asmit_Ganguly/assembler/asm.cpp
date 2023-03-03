@@ -66,8 +66,8 @@ void raiseError(int code, string label)
 {
     /*
         0- more than 1 arg passed
-        1- 1 argument but unknown mnemonic
-        2- 0 argument but unknown mnemonic
+        1- 1 argument but unknown mnemonic !not used
+        2- 0 argument but unknown mnemonic !not used
         3- bogus label name
         4- Invalid number
         5- No such label

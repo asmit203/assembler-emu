@@ -16,8 +16,8 @@ FILES:
     start of the program along with "DECLARATION OF AUTHORSHIP".
 
     *The evidence for assembler including the three output files (i.e. <file>.o, <file>.log, <file>.lst)
-    generated for each of the 5 sample program has also been uploaded. The test files are generating the 
-    correctoutput files to the best of my understanding, and as an evidence they can be tested using the emu.
+    generated for each of the 9 sample program has also been uploaded. The test files are generating the 
+    correct output files to the best of my understanding, and as an evidence they can be tested using the emu.
 
     *My programs did not show any errors when compiled on my end using "g++ asm.cpp -o asm" & passed 
     file name using "./asm <filename>" and "g++ emu.cpp -o emu" along with "./emu <filename>"
