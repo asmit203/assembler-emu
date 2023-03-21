@@ -36,7 +36,7 @@ g++ asm.cpp -o emu
 */
 
 
-#include <bits/stdc++.h>
+#include "/Users/asmitganguly/cpph/stdc++.h"
 using namespace std;
 
 
